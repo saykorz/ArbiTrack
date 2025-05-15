@@ -1,0 +1,102 @@
+﻿@page "/"
+@using ArbiTrack.Components.Library.ViewModels
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+@using ArbiTrack.Components.Pages.ViewModels
+@inject HomeViewModel ViewModel
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <button @onclick="@ViewModel.FetchLogsAsync">Fetch Logs</button>
+    <span>Total unique voters: @ViewModel.uniqueVoters</span>
+</div>
+<SfGrid DataSource="@ViewModel.Items" AllowReordering="true" AllowSorting="true">
+    <GridEvents TValue="ImpossibleFutureAppViewModel" RowDataBound="RowBound"></GridEvents>
+    <GridTemplates>
+        <DetailTemplate>
+            @{
+                var item = (context as ImpossibleFutureAppViewModel);
+                <table id="target-@item.Id" class="detailtable" width="100%">
+                    <colgroup>
+                        <col width="35%">
+                        <col width="35%">
+                        <col width="30%">
+                    </colgroup>
+                    <tbody>
+                        @if (item.Logs != null)
+                        {
+                            foreach(var log in item.Logs)
+                            {
+                                <tr>
+                                    <td>
+                                        <span style="font-weight: 500;">Address: </span>
+                                        <a href="javascript:void(0);" @onclick="@(() => ViewModel.OnVoterClicked(log.Voter))">
+                                            @log.Voter
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span style="font-weight: 500;">DateTime: </span> @log.DateOn
+                                    </td>
+                                    <td>
+                                        <span style="font-weight: 500;">Votes: </span> @log.Votes
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+        </DetailTemplate>
+    </GridTemplates>
+    <GridColumns>
+        <GridColumn Field=@nameof(ImpossibleFutureAppViewModel.Name) HeaderText="Name" Width="150"></GridColumn>
+        <GridColumn Field=@nameof(ImpossibleFutureAppViewModel.IsMajorityVoter) HeaderText="> 50% of votes" Width="250"></GridColumn>
+        <GridColumn Field=@nameof(ImpossibleFutureAppViewModel.Votes) HeaderText="Votes" Width="140" TextAlign="@TextAlign.Right" HeaderTextAlign="@TextAlign.Right" AllowSorting="true"></GridColumn>
+        <GridColumn Field=@nameof(ImpossibleFutureAppViewModel.Count) HeaderText="Popularity" Width="140" TextAlign="@TextAlign.Right" HeaderTextAlign="@TextAlign.Right" AllowSorting="true"></GridColumn>
+    </GridColumns>
+</SfGrid>
+<SfDialog Width="460px" EnableResize="true" ShowCloseIcon="true" IsModal="true"
+          Header="@ViewModel.SelectedAddress"
+    @bind-Visible="@ViewModel.IsDialogOpen">
+    <DialogTemplates>
+        <Content>
+            <SfGrid DataSource="@ViewModel.logsForVoter">
+                <GridColumns>
+                    <GridColumn Field="Address" HeaderText="App Name" Width="150"></GridColumn>
+                    <GridColumn Field="DateOn" HeaderText="Time" Width="200" TextAlign="TextAlign.Right"></GridColumn>
+                    <GridColumn Field="Votes" HeaderText="Votes" Width="100" TextAlign="TextAlign.Right"></GridColumn>
+                </GridColumns>
+            </SfGrid>
+        </Content>
+    </DialogTemplates>
+    <DialogPositionData X="right" Y="center"></DialogPositionData>
+
+</SfDialog>
+
+
+<style>
+    .progress-in {
+        background-color: red;
+    }
+
+    .complete {
+        background-color: greenyellow
+    }
+</style>
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.ReadMulti();
+        await base.OnInitializedAsync();
+
+        ViewModel.Items.CollectionChanged += (s, e) => InvokeAsync(StateHasChanged);
+    }
+
+    public void RowBound(RowDataBoundEventArgs<ImpossibleFutureAppViewModel> args)
+    {
+        if (!string.IsNullOrEmpty(args.Data.IsMajorityVoter) || args.Data.IsBelowAverage)
+        {
+            args.Row.AddClass(new string[] { "progress-in" });
+        }
+    }
+}
