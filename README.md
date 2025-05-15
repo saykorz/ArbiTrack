@@ -80,5 +80,4 @@ Combine your wallets. Track everything. Sleep easy.</p>
 🔗 All your wallets – one clear dashboard<br>
 📊 Real stats. Historic prices. Taxes.<br>
 ☁️ Stored safely in Autonomi<br><br>
-<b>Vote for ArbiTrack – finally understand your crypto flow.</b>
 </blockquote>
